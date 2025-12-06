@@ -1,19 +1,27 @@
 # Clear existing data
 Task.destroy_all
 Project.destroy_all
+User.destroy_all
 
-# Create sample projects
-project1 = Project.create!(
+# Create demo users
+demo_user = User.create!(
+  email: "demo@example.com",
+  password: "Password123",
+  password_confirmation: "Password123"
+)
+
+# Create sample projects for demo user
+project1 = demo_user.projects.create!(
   name: "Website Redesign",
   description: "Redesign the company website with modern UI/UX"
 )
 
-project2 = Project.create!(
+project2 = demo_user.projects.create!(
   name: "Mobile App",
   description: "Develop iOS and Android mobile applications"
 )
 
-project3 = Project.create!(
+project3 = demo_user.projects.create!(
   name: "Marketing Campaign",
   description: "Q1 2026 marketing campaign planning and execution"
 )
@@ -39,4 +47,4 @@ project3.tasks.create!([
   { title: "Create content calendar", completed: false }
 ])
 
-puts "✅ Seeded #{Project.count} projects with #{Task.count} tasks"
+puts "✅ Seeded #{Project.count} projects with #{Task.count} tasks for #{User.count} users"

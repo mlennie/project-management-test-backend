@@ -1,7 +1,12 @@
 require 'rails_helper'
 
 RSpec.describe "Api::V1::Tasks", type: :request do
-  let!(:project) { create(:project) }
+  before { host! "localhost" }
+
+  let(:user) { create(:user) }
+  let(:headers) { { "Authorization" => "Bearer #{token}" } }
+  let(:token) { JWT.encode({ sub: user.id, exp: 24.hours.from_now.to_i }, Rails.application.credentials.secret_key_base, 'HS256') }
+  let!(:project) { create(:project, user: user) }
   let!(:tasks) { create_list(:task, 3, project: project) }
   let(:task) { tasks.first }
   let(:task_id) { task.id }
@@ -11,7 +16,7 @@ RSpec.describe "Api::V1::Tasks", type: :request do
     let(:invalid_attributes) { { task: { title: "" } } }
 
     context "with valid parameters" do
-      before { post "/api/v1/projects/#{project.id}/tasks", params: valid_attributes }
+      before { post "/api/v1/projects/#{project.id}/tasks", params: valid_attributes, headers: headers }
 
       it "creates a new task" do
         expect(json_response['title']).to eq("New Task")
@@ -31,7 +36,7 @@ RSpec.describe "Api::V1::Tasks", type: :request do
     end
 
     context "with invalid parameters" do
-      before { post "/api/v1/projects/#{project.id}/tasks", params: invalid_attributes }
+      before { post "/api/v1/projects/#{project.id}/tasks", params: invalid_attributes, headers: headers }
 
       it "returns status code 422" do
         expect(response).to have_http_status(:unprocessable_entity)
@@ -48,7 +53,7 @@ RSpec.describe "Api::V1::Tasks", type: :request do
     let(:invalid_attributes) { { task: { title: "" } } }
 
     context "with valid parameters" do
-      before { put "/api/v1/tasks/#{task_id}", params: valid_attributes }
+      before { put "/api/v1/tasks/#{task_id}", params: valid_attributes, headers: headers }
 
       it "updates the task" do
         expect(json_response['title']).to eq("Updated Task")
@@ -61,7 +66,7 @@ RSpec.describe "Api::V1::Tasks", type: :request do
     end
 
     context "with invalid parameters" do
-      before { put "/api/v1/tasks/#{task_id}", params: invalid_attributes }
+      before { put "/api/v1/tasks/#{task_id}", params: invalid_attributes, headers: headers }
 
       it "returns status code 422" do
         expect(response).to have_http_status(:unprocessable_entity)
@@ -69,7 +74,7 @@ RSpec.describe "Api::V1::Tasks", type: :request do
     end
 
     context "toggling completed status" do
-      before { put "/api/v1/tasks/#{task_id}", params: { task: { completed: true } } }
+      before { put "/api/v1/tasks/#{task_id}", params: { task: { completed: true } }, headers: headers }
 
       it "toggles the completed status" do
         expect(json_response['completed']).to eq(true)
@@ -80,12 +85,12 @@ RSpec.describe "Api::V1::Tasks", type: :request do
   describe "DELETE /api/v1/tasks/:id" do
     it "deletes the task" do
       expect {
-        delete "/api/v1/tasks/#{task_id}"
+        delete "/api/v1/tasks/#{task_id}", headers: headers
       }.to change(Task, :count).by(-1)
     end
 
     it "returns status code 204" do
-      delete "/api/v1/tasks/#{task_id}"
+      delete "/api/v1/tasks/#{task_id}", headers: headers
       expect(response).to have_http_status(:no_content)
     end
   end

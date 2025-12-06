@@ -5,7 +5,7 @@ module Api
 
       # GET /api/v1/projects
       def index
-        @projects = Project.all
+        @projects = current_user.projects.includes(:tasks)
         render json: @projects
       end
 
@@ -16,7 +16,7 @@ module Api
 
       # POST /api/v1/projects
       def create
-        @project = Project.new(project_params)
+        @project = current_user.projects.new(project_params)
 
         if @project.save
           render json: @project, status: :created
@@ -43,7 +43,7 @@ module Api
       private
 
       def set_project
-        @project = Project.find(params[:id])
+        @project = current_user.projects.find(params[:id])
       end
 
       def project_params

@@ -30,6 +30,8 @@ Rails.application.configure do
 
   # Disable host authorization middleware for tests
   config.middleware.delete ActionDispatch::HostAuthorization
+  config.hosts.clear
+  config.hosts << /.*/
 
   # Store uploaded files on the local file system in a temporary directory.
   config.active_storage.service = :test

@@ -8,6 +8,11 @@ Rails.application.routes.draw do
   # API routes
   namespace :api do
     namespace :v1 do
+      post "auth/register", to: "auth#register"
+      post "auth/login", to: "auth#login"
+      get "auth/me", to: "auth#me"
+      delete "auth/logout", to: "auth#logout"
+
       get "hello", to: "hello#index"
 
       resources :projects do

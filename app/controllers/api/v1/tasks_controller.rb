@@ -33,11 +33,11 @@ module Api
       private
 
       def set_task
-        @task = Task.find(params[:id])
+        @task = Task.joins(:project).where(projects: { user_id: current_user.id }).find(params[:id])
       end
 
       def set_project
-        @project = Project.find(params[:project_id])
+        @project = current_user.projects.find(params[:project_id])
       end
 
       def task_params
