@@ -7,10 +7,13 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins "http://localhost:5173", ENV["FRONTEND_URL"] || "https://*.vercel.app"
+    origins "http://localhost:5173",
+            "https://frontend-seven-omega-br8u0ctqz0.vercel.app",
+            ENV["FRONTEND_URL"] || "https://*.vercel.app"
 
     resource "*",
       headers: :any,
-      methods: [ :get, :post, :put, :patch, :delete, :options, :head ]
+      methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
+      credentials: true
   end
 end
