@@ -16,7 +16,9 @@ Rails.application.routes.draw do
       get "hello", to: "hello#index"
 
       resources :projects do
-        resources :tasks, only: [ :create ]
+        resources :tasks, only: [ :create ] do
+          post :reorder, on: :collection
+        end
       end
 
       resources :tasks, only: [ :update, :destroy ]
