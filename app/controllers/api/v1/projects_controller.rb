@@ -43,7 +43,7 @@ module Api
       private
 
       def set_project
-        @project = current_user.projects.find(params[:id])
+        @project = current_user.projects.includes(:tasks).find(params[:id])
       end
 
       def project_params

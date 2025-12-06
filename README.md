@@ -1,239 +1,328 @@
-# Project Management API - Backend
+# Project Management App - Backend API
 
-A Ruby on Rails 8.1.1 API-only application for managing projects and tasks.
+Ruby on Rails 8.1.1 API-only application for managing projects and tasks with user authentication.
 
-## 🛠️ Technology Stack
+## 🚀 Tech Stack
 
+- **Framework**: Ruby on Rails 8.1.1 (API-only mode)
 - **Ruby**: 3.4.0+
-- **Rails**: 8.1.1 (API-only)
 - **Database**: PostgreSQL 17
-- **Testing**: RSpec (unit + integration + request specs)
-- **Linting**: RuboCop (Rails Omakase)
-- **Serialization**: ActiveModel::Serializer / Jbuilder
-- **Authentication**: Devise/JWT (Phase 3)
+- **Authentication**: JWT with bcrypt
+- **Testing**: RSpec (unit, integration, request specs)
+- **Security**: Rack::Attack for rate limiting
+- **Container**: Docker
 
-## 📋 Prerequisites
+## 📋 Features
+
+- **Authentication**: JWT-based auth with registration, login, logout
+- **Projects**: Full CRUD operations scoped to authenticated users
+- **Tasks**: Create, update, delete, toggle completion, drag-to-reorder
+- **Rate Limiting**: API throttling to prevent abuse
+- **N+1 Query Optimization**: Eager loading with `includes`
+- **Error Handling**: Consistent JSON error responses
+- **CORS**: Configured for frontend access
+
+## 🗄️ Database Schema
+
+### Users
+```ruby
+- id: integer (primary key)
+- email: string (unique, required)
+- password_digest: string (required)
+- created_at: datetime
+- updated_at: datetime
+```
+
+### Projects
+```ruby
+- id: integer (primary key)
+- name: string (required)
+- description: text
+- user_id: integer (foreign key, required)
+- created_at: datetime
+- updated_at: datetime
+```
+
+### Tasks
+```ruby
+- id: integer (primary key)
+- title: string (required)
+- completed: boolean (default: false)
+- position: integer (default: 0)
+- project_id: integer (foreign key, required)
+- created_at: datetime
+- updated_at: datetime
+```
+
+## 🔌 API Endpoints
+
+### Authentication (`/api/v1/auth`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/auth/register` | Register new user | No |
+| POST | `/auth/login` | Login and get JWT token | No |
+| GET | `/auth/me` | Get current user | Yes |
+| DELETE | `/auth/logout` | Logout (client-side token removal) | Yes |
+
+### Projects (`/api/v1/projects`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/projects` | List all user's projects | Yes |
+| GET | `/projects/:id` | Get project with tasks | Yes |
+| POST | `/projects` | Create new project | Yes |
+| PUT | `/projects/:id` | Update project | Yes |
+| DELETE | `/projects/:id` | Delete project | Yes |
+
+### Tasks (`/api/v1/tasks`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/projects/:project_id/tasks` | Create task | Yes |
+| PUT | `/tasks/:id` | Update task | Yes |
+| DELETE | `/tasks/:id` | Delete task | Yes |
+| POST | `/projects/:project_id/tasks/reorder` | Reorder tasks | Yes |
+
+## 🔐 Authentication
+
+All protected endpoints require a JWT token in the Authorization header:
+
+```
+Authorization: Bearer <your_jwt_token>
+```
+
+### Request/Response Examples
+
+**Register:**
+```bash
+POST /api/v1/auth/register
+Content-Type: application/json
+
+{
+  "user": {
+    "email": "user@example.com",
+    "password": "Password123",
+    "password_confirmation": "Password123"
+  }
+}
+
+# Response (201):
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "user": {
+    "id": 1,
+    "email": "user@example.com"
+  }
+}
+```
+
+**Login:**
+```bash
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "Password123"
+}
+
+# Response (200):
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "user": {
+    "id": 1,
+    "email": "user@example.com"
+  }
+}
+```
+
+**Create Project:**
+```bash
+POST /api/v1/projects
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "project": {
+    "name": "My Project",
+    "description": "Project description"
+  }
+}
+
+# Response (201):
+{
+  "id": 1,
+  "name": "My Project",
+  "description": "Project description",
+  "user_id": 1,
+  "created_at": "2025-12-06T00:00:00.000Z",
+  "updated_at": "2025-12-06T00:00:00.000Z"
+}
+```
+
+## 🚦 Rate Limiting
+
+The API implements rate limiting to prevent abuse:
+
+- **General requests**: 300 requests per 5 minutes per IP
+- **Login attempts**: 5 attempts per 20 seconds per IP/email
+- **Registration**: 3 attempts per 20 seconds per IP
+
+Rate-limited requests receive a `429 Too Many Requests` response.
+
+## 🛠️ Setup & Installation
+
+### Prerequisites
 
 - Docker
 - Docker Compose
 
-## 🚀 Getting Started
+### Environment Variables
 
-### 1. Clone the repository
+Create `.env` file (optional, defaults are set):
 
-```bash
-git clone <your-backend-repo-url>
-cd project-management-backend
+```env
+DATABASE_URL=postgresql://postgres:password@db:5432/app_development
+SECRET_KEY_BASE=your_secret_key_base
 ```
 
-### 2. Start the application
+### Installation
 
-From the backend directory, run:
+1. **Start services:**
+   ```bash
+   docker compose up
+   ```
 
+2. **Setup database:**
+   ```bash
+   docker compose exec api bundle exec rails db:create db:migrate db:seed
+   ```
+
+3. **API available at:** http://localhost:3000
+
+### Seeded Data
+
+The database seeds include:
+- Demo user: `demo@example.com` / `Password123`
+- 3 sample projects with 9 tasks
+
+## 🧪 Testing
+
+### Run All Tests
 ```bash
-docker compose up
+docker compose exec api bundle exec rspec
 ```
 
-This will start:
-- PostgreSQL database (port 5432)
-- Rails API server (port 3000)
-- React frontend (port 5173) - from sibling frontend directory
-
-### 3. Access the API
-
-- API Base URL: http://localhost:3000
-- Health Check: http://localhost:3000/up
-- Hello World: http://localhost:3000/api/v1/hello
-
-## 🧪 Running Tests
-
-### Run all tests
-
+### Run with Documentation Format
 ```bash
-docker compose exec -e RAILS_ENV=test api bundle exec rspec --format progress --fail-fast
+docker compose exec api bundle exec rspec --format documentation
 ```
 
-### Run specific test file
-
+### Run Specific Spec
 ```bash
-docker compose exec -e RAILS_ENV=test api bundle exec rspec spec/requests/api/v1/hello_spec.rb
+docker compose exec api bundle exec rspec spec/requests/api/v1/projects_spec.rb
 ```
 
-### Run with documentation format
+### Test Coverage
+- **49 specs** covering:
+  - Model validations and associations
+  - Authentication flows
+  - All API endpoints
+  - Authorization (user-scoped data)
+  - Task reordering
 
-```bash
-docker compose exec -e RAILS_ENV=test api bundle exec rspec --format documentation
-```
-
-## 🔍 Code Quality
+## 🎨 Code Quality
 
 ### Run RuboCop
-
 ```bash
 docker compose exec api bundle exec rubocop
 ```
 
-### Auto-fix RuboCop issues
-
+### Auto-fix Issues
 ```bash
 docker compose exec api bundle exec rubocop -a
 ```
 
-## 🗄️ Database Commands
-
-### Create database
-
-```bash
-docker compose exec api bundle exec rails db:create
-```
-
-### Run migrations
-
-```bash
-docker compose exec api bundle exec rails db:migrate
-```
-
-### Seed database
-
-```bash
-docker compose exec api bundle exec rails db:seed
-```
-
-### Reset database
-
-```bash
-docker compose exec api bundle exec rails db:reset
-```
-
-## 📡 API Endpoints
-
-### Phase 1: Hello World
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/hello` | Returns hello world message |
-
-### Phase 2: Projects & Tasks (Coming Soon)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/projects` | List all projects |
-| GET | `/api/v1/projects/:id` | Get project with tasks |
-| POST | `/api/v1/projects` | Create a project |
-| PUT | `/api/v1/projects/:id` | Update a project |
-| DELETE | `/api/v1/projects/:id` | Delete a project |
-| POST | `/api/v1/projects/:project_id/tasks` | Add task to project |
-| PUT | `/api/v1/tasks/:id` | Update task |
-| DELETE | `/api/v1/tasks/:id` | Delete task |
-
-## 📁 Project Structure
+## 📦 Project Structure
 
 ```
 backend/
 ├── app/
 │   ├── controllers/
-│   │   └── api/
-│   │       └── v1/
-│   │           └── hello_controller.rb
-│   ├── models/
-│   └── ...
+│   │   └── api/v1/         # API controllers
+│   └── models/             # ActiveRecord models
 ├── config/
-│   ├── routes.rb
-│   ├── database.yml
-│   └── initializers/
-│       └── cors.rb
+│   ├── initializers/
+│   │   ├── cors.rb         # CORS configuration
+│   │   └── rack_attack.rb  # Rate limiting
+│   └── routes.rb           # API routes
 ├── db/
-│   ├── migrate/
-│   └── seeds.rb
+│   ├── migrate/            # Database migrations
+│   ├── seeds.rb            # Seed data
+│   └── schema.rb           # Database schema
 ├── spec/
-│   ├── requests/
-│   └── rails_helper.rb
+│   ├── factories/          # Test factories
+│   ├── models/             # Model specs
+│   └── requests/           # Request specs
 ├── Dockerfile
-├── docker-compose.yml
-└── Gemfile
+├── Gemfile
+└── README.md
 ```
 
 ## 🔧 Development
 
-### Access Rails console
-
+### Rails Console
 ```bash
 docker compose exec api bundle exec rails console
 ```
 
-### Access container shell
-
+### Generate Migration
 ```bash
-docker compose exec api bash
+docker compose exec api bundle exec rails generate migration MigrationName
 ```
 
-### View logs
+### Run Migration
+```bash
+docker compose exec api bundle exec rails db:migrate
+```
 
+### Rollback Migration
+```bash
+docker compose exec api bundle exec rails db:rollback
+```
+
+## 🐛 Troubleshooting
+
+### Reset Database
+```bash
+docker compose exec api bundle exec rails db:drop db:create db:migrate db:seed
+```
+
+### View Logs
 ```bash
 docker compose logs -f api
 ```
 
-### Install new gem
-
-1. Add gem to `Gemfile`
-2. Run:
+### Rebuild Container
 ```bash
-docker compose exec api bundle install
+docker compose build api
+docker compose up
 ```
 
-## 🌐 CORS Configuration
+## 📝 Notes
 
-The API accepts requests from:
-- `http://localhost:5173` (React frontend)
+- API is versioned under `/api/v1`
+- All endpoints return JSON
+- Authentication tokens expire after 24 hours
+- Projects and tasks are scoped to authenticated users
+- Deleting a project cascades to its tasks
 
-To add more origins, edit `config/initializers/cors.rb`
+## 🚀 Production Considerations
 
-## 🔐 Environment Variables
-
-The application uses the following environment variables:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DB_HOST` | `db` | Database host |
-| `DB_USERNAME` | `postgres` | Database username |
-| `DB_PASSWORD` | `postgres` | Database password |
-| `DB_PORT` | `5432` | Database port |
-| `RAILS_ENV` | `development` | Rails environment |
-
-## 📝 Testing Strategy
-
-- **Unit tests**: Model validations, associations, methods
-- **Integration tests**: Complex workflows across multiple models
-- **Request specs**: API endpoints, responses, status codes
-- **No controller specs**: Using request specs instead (Rails best practice)
-- **No E2E tests**: Frontend handles E2E testing
-
-## 🔄 Continuous Integration
-
-GitHub Actions automatically runs on every push:
-- RuboCop linting
-- RSpec test suite
-- Database setup and migrations
-
-See `.github/workflows/test.yml` for details.
-
-## 📚 Additional Resources
-
-- [Rails Guides](https://guides.rubyonrails.org/)
-- [RSpec Documentation](https://rspec.info/)
-- [RuboCop Rails](https://docs.rubocop.org/rubocop-rails/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-
-## 🤝 Contributing
-
-1. Create a feature branch
-2. Make your changes
-3. Ensure tests pass: `docker compose exec -e RAILS_ENV=test api bundle exec rspec`
-4. Ensure RuboCop passes: `docker compose exec api bundle exec rubocop`
-5. Commit your changes
-6. Push to the branch
-7. Create a Pull Request
-
-## 📄 License
-
-This project is part of a technical assessment.
+- Set `SECRET_KEY_BASE` environment variable
+- Configure production database
+- Enable HTTPS
+- Adjust rate limits as needed
+- Set up monitoring and logging
+- Consider Redis for Rack::Attack cache
