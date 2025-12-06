@@ -5,7 +5,7 @@ module Api
     # Base controller for API v1 with error handling
     class BaseController < ApplicationController
       rescue_from ActiveRecord::RecordNotFound, with: :not_found
-      rescue_from ActiveRecord::RecordInvalid, with: :unprocessable_entity
+      rescue_from ActiveRecord::RecordInvalid, with: :unprocessable_content
       rescue_from ActionController::ParameterMissing, with: :bad_request
 
       private
@@ -14,8 +14,8 @@ module Api
         render json: { error: exception.message }, status: :not_found
       end
 
-      def unprocessable_entity(exception)
-        render json: { errors: exception.record.errors.full_messages }, status: :unprocessable_entity
+      def unprocessable_content(exception)
+        render json: { errors: exception.record.errors.full_messages }, status: :unprocessable_content
       end
 
       def bad_request(exception)

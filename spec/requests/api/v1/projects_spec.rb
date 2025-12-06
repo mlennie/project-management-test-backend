@@ -70,7 +70,7 @@ RSpec.describe "Api::V1::Projects", type: :request do
       before { post "/api/v1/projects", params: invalid_attributes, headers: headers }
 
       it "returns status code 422" do
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
 
       it "returns validation errors" do
@@ -99,7 +99,7 @@ RSpec.describe "Api::V1::Projects", type: :request do
       before { put "/api/v1/projects/#{project_id}", params: invalid_attributes, headers: headers }
 
       it "returns status code 422" do
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
   end

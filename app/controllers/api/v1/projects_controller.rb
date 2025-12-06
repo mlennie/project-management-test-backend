@@ -21,7 +21,7 @@ module Api
         if @project.save
           render json: @project, status: :created
         else
-          render json: { errors: @project.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: @project.errors.full_messages }, status: :unprocessable_content
         end
       end
 
@@ -30,7 +30,7 @@ module Api
         if @project.update(project_params)
           render json: @project
         else
-          render json: { errors: @project.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: @project.errors.full_messages }, status: :unprocessable_content
         end
       end
 

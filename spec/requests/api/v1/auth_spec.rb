@@ -19,7 +19,7 @@ RSpec.describe "Api::V1::Auth", type: :request do
     it "returns errors for invalid data" do
       post "/api/v1/auth/register", params: { user: { email: "", password: "short", password_confirmation: "short" } }
 
-      expect(response).to have_http_status(:unprocessable_entity), response.body
+      expect(response).to have_http_status(:unprocessable_content), response.body
     end
   end
 

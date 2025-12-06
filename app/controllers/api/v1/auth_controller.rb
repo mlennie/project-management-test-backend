@@ -8,7 +8,7 @@ module Api
         if user.save
           render json: auth_response(user), status: :created
         else
-          render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: user.errors.full_messages }, status: :unprocessable_content
         end
       end
 

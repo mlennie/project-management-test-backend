@@ -48,6 +48,7 @@ jobs:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       DB_PORT: 5432
+      SECRET_KEY_BASE: test_secret_key_base_for_ci_only_not_for_production_use
     
     steps:
     - uses: actions/checkout@v4
