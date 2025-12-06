@@ -42,7 +42,8 @@ RSpec.describe "Api::V1::Auth", type: :request do
 
   describe "GET /api/v1/auth/me" do
     it "returns current user when authorized" do
-      token = JWT.encode({ sub: user.id, exp: 24.hours.from_now.to_i }, Rails.application.credentials.secret_key_base, 'HS256')
+      secret = Rails.application.credentials.secret_key_base || ENV["SECRET_KEY_BASE"]
+      token = JWT.encode({ sub: user.id, exp: 24.hours.from_now.to_i }, secret, 'HS256')
       get "/api/v1/auth/me", headers: { "Authorization" => "Bearer #{token}" }
 
       expect(response).to have_http_status(:ok), response.body
