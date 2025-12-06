@@ -318,11 +318,102 @@ docker compose up
 - Projects and tasks are scoped to authenticated users
 - Deleting a project cascades to its tasks
 
+## 🌐 Production Deployment
+
+### Live URLs
+
+- **Production API**: https://project-mgmt-api-2cf73f8e0744.herokuapp.com
+- **API Base URL**: https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1
+- **Frontend URL**: https://frontend-ki5m88e36-dealais-projects.vercel.app
+- **Platform**: Heroku (backend), Vercel (frontend)
+
+### Demo Account
+
+Login to the production app:
+- **Email**: `demo@example.com`
+- **Password**: `Password123`
+
+### Testing Production API
+
+**Health Check:**
+```bash
+curl https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1/hello
+# Returns: {"message":"Hello World"}
+```
+
+**Login:**
+```bash
+curl -X POST https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo@example.com","password":"Password123"}'
+
+# Save the token from response
+TOKEN="<your_token_here>"
+```
+
+**Get Projects:**
+```bash
+curl https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1/projects \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Create Project:**
+```bash
+curl -X POST https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1/projects \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"project":{"name":"Test Project","description":"Created via API"}}'
+```
+
+### Deployment Details
+
+**Heroku Configuration:**
+- Database: PostgreSQL Essential-0 plan
+- Environment: Production
+- Migrations: Auto-run on release
+- CORS: Configured for Vercel frontend
+
+**Environment Variables:**
+```bash
+# View all config vars
+heroku config --app project-mgmt-api
+
+# Set new variable
+heroku config:set VARIABLE_NAME=value --app project-mgmt-api
+```
+
+**Database Management:**
+```bash
+# Seed production database
+heroku run bundle exec rails db:seed --app project-mgmt-api
+
+# Run migrations
+heroku run bundle exec rails db:migrate --app project-mgmt-api
+
+# Open Rails console
+heroku run bundle exec rails console --app project-mgmt-api
+
+# Reset database (CAUTION!)
+heroku run bundle exec rails db:reset --app project-mgmt-api
+```
+
+**Monitoring:**
+```bash
+# View logs
+heroku logs --tail --app project-mgmt-api
+
+# View only app logs
+heroku logs --source app --tail --app project-mgmt-api
+
+# Check dyno status
+heroku ps --app project-mgmt-api
+```
+
 ## 🚀 Production Considerations
 
-- Set `SECRET_KEY_BASE` environment variable
-- Configure production database
-- Enable HTTPS
-- Adjust rate limits as needed
-- Set up monitoring and logging
-- Consider Redis for Rack::Attack cache
+- ✅ `SECRET_KEY_BASE` environment variable configured
+- ✅ Production database (PostgreSQL) configured
+- ✅ HTTPS enabled via Heroku
+- ✅ Rate limits configured (300 req/5min)
+- 🔲 Set up monitoring and logging (e.g., Sentry)
+- 🔲 Consider Redis for Rack::Attack cache for multi-dyno setups
