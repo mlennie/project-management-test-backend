@@ -116,4 +116,3 @@ RSpec.describe "Api::V1::Projects", type: :request do
     JSON.parse(response.body)
   end
 end
-
