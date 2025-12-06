@@ -6,7 +6,7 @@ RSpec.describe "Api::V1::Hello", type: :request do
       get "/api/v1/hello", headers: { 'Accept' => 'application/json', 'Host' => 'example.com' }
 
       expect(response).to have_http_status(:success)
-      
+
       json_response = JSON.parse(response.body)
       expect(json_response["message"]).to eq("Hello World")
     end
@@ -18,4 +18,3 @@ RSpec.describe "Api::V1::Hello", type: :request do
     end
   end
 end
-
