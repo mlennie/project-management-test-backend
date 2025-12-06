@@ -324,7 +324,7 @@ docker compose up
 
 - **Production API**: https://project-mgmt-api-2cf73f8e0744.herokuapp.com
 - **API Base URL**: https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1
-- **Frontend URL**: https://frontend-ki5m88e36-dealais-projects.vercel.app
+- **Frontend URL**: https://frontend-seven-omega-br8u0ctqz0.vercel.app
 - **Platform**: Heroku (backend), Vercel (frontend)
 
 ### Demo Account
@@ -341,6 +341,21 @@ curl https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1/hello
 # Returns: {"message":"Hello World"}
 ```
 
+**Register New User:**
+```bash
+curl -X POST https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user": {
+      "email": "test@example.com",
+      "password": "Password123",
+      "password_confirmation": "Password123"
+    }
+  }'
+
+# Returns: {"token":"...", "user":{"id":...,"email":"..."}}
+```
+
 **Login:**
 ```bash
 curl -X POST https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1/auth/login \
@@ -349,6 +364,12 @@ curl -X POST https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1/auth/log
 
 # Save the token from response
 TOKEN="<your_token_here>"
+```
+
+**Get Current User:**
+```bash
+curl https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1/auth/me \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 **Get Projects:**
@@ -363,6 +384,40 @@ curl -X POST https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1/projects
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"project":{"name":"Test Project","description":"Created via API"}}'
+```
+
+**Get Project with Tasks:**
+```bash
+# Replace :id with actual project ID
+curl https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1/projects/:id \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Create Task:**
+```bash
+# Replace :project_id with actual project ID
+curl -X POST https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1/projects/:project_id/tasks \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"task":{"title":"New Task"}}'
+```
+
+**Update Task:**
+```bash
+# Replace :id with actual task ID
+curl -X PUT https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1/tasks/:id \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"task":{"completed":true}}'
+```
+
+**Reorder Tasks:**
+```bash
+# Replace :project_id with actual project ID and provide array of task IDs
+curl -X POST https://project-mgmt-api-2cf73f8e0744.herokuapp.com/api/v1/projects/:project_id/tasks/reorder \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"task_ids":[3,1,2]}'
 ```
 
 ### Deployment Details
