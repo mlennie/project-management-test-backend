@@ -5,7 +5,8 @@ RSpec.describe "Api::V1::Projects", type: :request do
 
   let(:user) { create(:user) }
   let(:headers) { { "Authorization" => "Bearer #{token}" } }
-  let(:token) { JWT.encode({ sub: user.id, exp: 24.hours.from_now.to_i }, Rails.application.credentials.secret_key_base, 'HS256') }
+  let(:jwt_secret) { Rails.application.credentials.secret_key_base || ENV["SECRET_KEY_BASE"] }
+  let(:token) { JWT.encode({ sub: user.id, exp: 24.hours.from_now.to_i }, jwt_secret, 'HS256') }
   let!(:projects) { create_list(:project, 3, user: user) }
   let(:project) { projects.first }
   let(:project_id) { project.id }
